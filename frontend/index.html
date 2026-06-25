@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VANIGAN - Shop Assistant</title>
+    <link rel="stylesheet" href="/frontend/styles.css">
+</head>
+<body>
+    <!-- Authentication & Onboarding Overlay -->
+    <div id="auth-container" class="auth-container">
+        <!-- Login View -->
+        <div id="auth-login-view" class="auth-card active-auth-view">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p>Log in to resume your shop operations.</p>
+            </div>
+            <div class="auth-body">
+                <div id="login-error" style="display:none; color: #e74c3c; background: #fdecea; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem; text-align: center;"></div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" class="auth-input" placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" class="auth-input" placeholder="••••••••">
+                </div>
+                <button id="btn-login-submit" class="btn-primary auth-btn">Log In</button>
+                <div class="auth-divider"><span>or</span></div>
+                <button id="btn-login-google" class="btn-outline auth-btn google-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </button>
+            </div>
+            <div class="auth-footer">
+                <p>New to Vanigan? <span id="link-to-signup" class="auth-link">Sign Up</span></p>
+            </div>
+        </div>
+
+        <!-- Sign-Up View: Step 1 (Credentials) -->
+        <div id="auth-signup-step1" class="auth-card">
+            <div class="auth-header">
+                <h2>Create an Account</h2>
+                <p>Start managing your shop efficiently.</p>
+            </div>
+            <div class="auth-body">
+                <div id="signup-error" style="display:none; color: #e74c3c; background: #fdecea; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem; text-align: center;"></div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signup-email" class="auth-input" placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signup-password" class="auth-input" placeholder="Create a password">
+                </div>
+                <button id="btn-signup-step1" class="btn-primary auth-btn">Continue</button>
+                <div class="auth-divider"><span>or</span></div>
+                <button id="btn-signup-google" class="btn-outline auth-btn google-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </button>
+            </div>
+            <div class="auth-footer">
+                <p>Already have an account? <span id="link-to-login" class="auth-link">Log In</span></p>
+            </div>
+        </div>
+
+        <!-- Sign-Up View: Step 2 (Business Details) -->
+        <div id="auth-signup-step2" class="auth-card">
+            <div class="auth-header">
+                <h2>Business Details</h2>
+                <p>Tell us a bit about your shop.</p>
+            </div>
+            <div class="auth-body">
+                <div class="form-group">
+                    <label>Shop Name</label>
+                    <input type="text" id="signup-shopname" class="auth-input" placeholder="e.g. Senthil Electronics">
+                </div>
+                <div class="form-group">
+                    <label>What do you do?</label>
+                    <div class="custom-select-wrapper">
+                        <select id="signup-businesstype" class="auth-input custom-select">
+                            <option value="" disabled selected>Select business type...</option>
+                            <option value="Laptop Repair Service">Laptop Repair Service</option>
+                            <option value="Mobile Service Center">Mobile Service Center</option>
+                            <option value="Retail Vendor">Retail Vendor</option>
+                            <option value="Electronics Repair">Electronics Repair</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span class="select-icon">▼</span>
+                    </div>
+                </div>
+                <button id="btn-signup-complete" class="btn-primary auth-btn">Complete Setup</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container layout-1" id="app-container" style="position: relative; display: none; opacity: 0; transition: opacity 0.5s ease;">
+        <!-- Global Top-Right Header Control -->
+        <div id="global-header-control" style="position: absolute; top: 16px; right: 24px; z-index: 1000;">
+            <button id="header-menu-btn" class="three-dots-trigger">⋮</button>
+            <div id="header-dropdown-menu" class="action-dropdown" style="display: none;">
+                <div id="opt-swap-layout" class="dropdown-item">Swap Layout</div>
+                <div id="opt-view-validity" class="dropdown-item">View Validity</div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar-nav">
+            <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>VANIGAN</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-target="pending">Pending Orders</button>
+                <button class="nav-item" data-target="customers">Customer Database</button>
+                <button class="nav-item" data-target="yet-to-pay">Yet To Pay</button>
+                <button class="nav-item" data-target="analytics">Analytics</button>
+                <button class="nav-item" data-target="inventory" id="btn-inventory">Inventory Tracker</button>
+                <button class="nav-item" data-target="calendar" id="btn-calendar">Delivery Calendar</button>
+            </nav>
+            
+            <!-- Bottom Profile Footer -->
+            <div id="sidebar-profile-card" class="user-profile-badge">
+                <div class="profile-avatar">S</div>
+                <div class="profile-info">
+                    <div class="shop-name">Senthil Electronics</div>
+                    <div class="shop-role">Admin</div>
+                </div>
+            </div>
+            
+            <div id="profile-dropdown-menu" class="action-dropdown" style="display: none;">
+                <div id="opt-profile-settings" class="dropdown-item">Settings</div>
+                <div id="opt-profile-theme" class="dropdown-item">Theme</div>
+                <div id="opt-profile-font" class="dropdown-item">Font Style</div>
+                <div id="opt-profile-signout" class="dropdown-item" style="color: #e74c3c;">Sign Out</div>
+            </div>
+        </div>
+        
+        <!-- Chat Panel -->
+        <div class="chat-panel" id="chat-panel">
+            <div class="chat-header">
+                <h3>Chat Assistant</h3>
+            </div>
+            <div class="chat-history" id="chat-history">
+                <div class="message-wrapper assistant">
+                    <div class="message assistant">
+                        <p>Hi! I am VANIGAN. How can I help you today?</p>
+                    </div>
+                    <div class="message-actions">
+                        <button class="action-btn copy-btn" onclick="navigator.clipboard.writeText('Hi! I am VANIGAN. How can I help you today?').then(() => { this.innerHTML='✅ Copied!'; setTimeout(() => this.innerHTML='📋 Copy', 2000); })">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-chips" id="chat-chips">
+                <button class="chip-btn">➕ New Job Setup</button>
+                <button class="chip-btn">💰 Show Unpaid</button>
+                <button class="chip-btn">📊 Refresh Analytics</button>
+            </div>
+            <div class="chat-input-container">
+                <textarea id="chat-input" placeholder="Type your message here..." rows="1"></textarea>
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+
+        <!-- Draggable Resizer -->
+        <div id="panel-resizer" class="workspace-splitter"></div>
+
+        <!-- Main Content (Data Views) -->
+        <div class="main-content" id="main-content-panel" style="padding-top: 48px;">
+            <div id="view-pending" class="content-view active">
+                <h3>Pending Orders</h3>
+                <div id="pending-list" class="data-list">Loading...</div>
+            </div>
+            
+            <div id="view-customers" class="content-view" style="display: none;">
+                <div class="view-header">
+                    <h3>Customer Database</h3>
+                    <input type="text" id="search-db" placeholder="Search name or phone..." class="search-input">
+                </div>
+                <div class="table-container">
+                    <table id="database-table">
+                        <thead>
+                            <tr><th>Job ID</th><th>Customer</th><th>Phone</th><th>Product</th><th>Status</th><th>Payment</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="database-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="view-yet-to-pay" class="content-view" style="display: none;">
+                <div class="view-header">
+                    <h3>Yet To Pay Customers</h3>
+                    <input type="text" id="search-unpaid" placeholder="Search name or phone..." class="search-input">
+                </div>
+                <div class="table-container">
+                    <table id="unpaid-table">
+                        <thead>
+                            <tr><th>Job ID</th><th>Customer</th><th>Phone</th><th>Total Cost</th><th>Balance Due</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="unpaid-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="view-analytics" class="content-view" style="display: none;">
+                <h3>Analytics</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card"><div class="label">Today's Turnover</div><div class="value" id="turnover-today">₹0</div></div>
+                    <div class="analytics-card"><div class="label">Weekly Turnover</div><div class="value" id="turnover-weekly">₹0</div></div>
+                    <div class="analytics-card"><div class="label">Monthly Turnover</div><div class="value" id="turnover-monthly">₹0</div></div>
+                    <div class="analytics-card"><div class="label">Yearly Turnover</div><div class="value" id="turnover-yearly">₹0</div></div>
+                </div>
+            </div>
+
+            <div id="view-inventory" class="content-view" style="display: none;">
+                <h2>Inventory Tracker</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="inv-item-name" placeholder="Item Name (e.g., 8GB DDR4 RAM)" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; flex: 1;">
+                    <input type="number" id="inv-item-qty" placeholder="Initial Qty" min="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 120px;">
+                    <button id="btn-add-inventory" style="padding: 10px 20px; background: #1a73e8; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Add Item</button>
+                </div>
+                <div class="table-container">
+                    <table id="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Stock Qty</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-calendar" class="content-view" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Delivery Calendar</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="cal-month" class="premium-dropdown">
+                            <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+                            <option value="3">Apr</option><option value="4">May</option><option value="5" selected>Jun</option>
+                            <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+                            <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+                        </select>
+                        <select id="cal-year" class="premium-dropdown">
+                            <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                            <option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="calendar-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; padding: 10px 0; background: #f8f9fa; border-radius: 8px 8px 0 0;">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="calendar-days-grid" id="calendar-days-grid">
+                    <!-- Javascript will dynamically inject the grid cells here -->
+                </div>
+            </div>
+
+            <div id="view-settings" class="content-view" style="display: none;">
+                <h2>Shop Settings</h2>
+                <div class="settings-grid" style="display: flex; flex-direction: column; max-width: 600px; margin-top: 20px;">
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;">
+                        <label style="font-weight: 500; color: #333; font-size: 0.95rem;">Template 1: Job Registration Alert (Sent automatically upon new entry check-in)</label>
+                        <textarea id="template-registration" rows="4">Dear {customer}, your device ({product}) has been checked in under Job ID: {job_id}. Estimated cost: ₹{total}. Promised delivery: {delivery_date}.</textarea>
+                    </div>
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;">
+                        <label style="font-weight: 500; color: #333; font-size: 0.95rem;">Template 2: Ready for Pickup Alert (Triggered instantly when 'Task Done' is checked)</label>
+                        <textarea id="template-pickup" rows="4">Dear {customer}, your device under Job ID: {job_id} is ready for pickup! Total balance due is ₹{total}. Please visit our shop to collect it.</textarea>
+                    </div>
+                    <button style="padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 500; cursor: pointer; align-self: flex-start;">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Edit Customer Modal -->
+    <div id="edit-customer-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Database Record</h3>
+                <button id="close-edit-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-job-id">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="edit-customer-name" class="modal-input">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="edit-phone" class="modal-input">
+                </div>
+                <div class="form-group">
+                    <label>Product Model</label>
+                    <input type="text" id="edit-product" class="modal-input">
+                </div>
+                <div class="form-group" style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label>Total Cost (₹)</label>
+                        <input type="number" id="edit-total-cost" class="modal-input">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Advance Paid (₹)</label>
+                        <input type="number" id="edit-advance-paid" class="modal-input">
+                    </div>
+                </div>
+                <button id="btn-update-record" class="btn-primary" style="margin-top: 16px; width: 100%;">Update Database Record</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/frontend/app.js"></script>
+</body>
+</html>
