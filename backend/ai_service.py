@@ -9,17 +9,17 @@ load_dotenv("backend/.env")
 
 class JobExtraction(BaseModel):
     intent: str = Field(description="The user's intent. Must be one of: 'create_job', 'update_job', 'search', 'get_analytics', 'casual_chat', 'process_payment', 'cancel'")
-    customer_name: str | None = Field(default=None, description="Name of the customer")
-    job_id: str | None = Field(default=None, description="Specific JOB ID if provided (e.g. VN260619-003)")
-    phone: str | None = Field(default=None, description="Phone number of the customer")
-    product: str | None = Field(default=None, description="The product being repaired")
-    issue: str | None = Field(default=None, description="The issue or problem described")
-    deadline: str | None = Field(default=None, description="The deadline for the repair")
-    total_cost: float | None = Field(default=None, description="The total cost of the repair")
-    advance_paid: float | None = Field(default=None, description="Amount of advance paid, if any")
-    search_query: str | None = Field(default=None, description="The search term if intent is 'search'")
-    casual_response: str | None = Field(default=None, description="A polite response if the intent is 'casual_chat'")
-    payment_amount: float | None = Field(default=None, description="The amount being paid, if intent is 'process_payment'")
+    customer_name: str = Field(default="", description="Name of the customer")
+    job_id: str = Field(default="", description="Specific JOB ID if provided (e.g. VN260619-003)")
+    phone: str = Field(default="", description="Phone number of the customer")
+    product: str = Field(default="", description="The product being repaired")
+    issue: str = Field(default="", description="The issue or problem described")
+    deadline: str = Field(default="", description="The deadline for the repair")
+    total_cost: float = Field(default=0.0, description="The total cost of the repair")
+    advance_paid: float = Field(default=0.0, description="Amount of advance paid, if any")
+    search_query: str = Field(default="", description="The search term if intent is 'search'")
+    casual_response: str = Field(default="", description="A polite response if the intent is 'casual_chat'")
+    payment_amount: float = Field(default=0.0, description="The amount being paid, if intent is 'process_payment'")
 
 def get_client():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -49,7 +49,7 @@ def process_chat_message(message: str, recent_jobs_context: str = "") -> JobExtr
         "Intents: 'create_job' for new repairs, 'update_job' for modifying existing repairs, 'search' for looking up jobs, 'casual_chat' for general talk, 'process_payment' for payments, 'cancel' to stop or abort. "
         "MANDATORY VERIFICATION: Before allowing a new ticket to save, you must explicitly demand and collect four mandatory pieces of data: [Customer Name, Phone Number, Product/Issue, and Total Cost]. "
         "If Total Cost is not specified, you must actively loop back and ask: 'What is the total estimated cost for this repair?' instead of defaulting to 0. "
-        "CRITICAL: If a value is not explicitly provided in the message, you MUST return null. Do not use 'none', 'unknown', or 'N/A' as strings.\n"
+        "CRITICAL: If a value is not explicitly provided in the message, you MUST return an empty string '' or 0. Do not use 'none', 'unknown', 'N/A', or null.\n"
         "You have access to the active shop logs below. Use this data to answer any summarizing questions from the shop keeper about past jobs, balances, or status updates naturally in your 'casual_response'.\n"
         f"RECENT JOBS CONTEXT:\n{recent_jobs_context}"
     )

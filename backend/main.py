@@ -256,18 +256,17 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
                 if extracted.deadline: 
                     existing_job.deadline = extracted.deadline
                     updated_fields.append("Deadline")
-                if extracted.total_cost is not None: 
+                if extracted.total_cost > 0: 
                     existing_job.total_cost = float(extracted.total_cost)
                     updated_fields.append("Total Cost")
-                if extracted.advance_paid is not None: 
+                if extracted.advance_paid > 0: 
                     existing_job.advance_paid = float(existing_job.advance_paid or 0) + float(extracted.advance_paid)
                     updated_fields.append("Advance Paid")
-                    
                 if updated_fields:
                     db.commit()
                     conversation_state.pop("pending_job", None)
                     fields_str = ", ".join(updated_fields)
-                    if extracted.total_cost is not None:
+                    if extracted.total_cost > 0:
                         return ChatResponse(reply=f"Got it! I have updated {existing_job.customer_name}'s {fields_str} to ₹{existing_job.total_cost}.", action="refresh_jobs")
                     return ChatResponse(reply=f"Got it! I have updated {existing_job.customer_name}'s {fields_str}.", action="refresh_jobs")
                 elif extracted.intent == "update_job":
@@ -308,8 +307,8 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
                 if extracted.product: pending_job["product"] = extracted.product
                 if extracted.issue: pending_job["issue"] = extracted.issue
                 if parsed_deadline: pending_job["deadline"] = parsed_deadline
-                if extracted.total_cost is not None: pending_job["total_cost"] = extracted.total_cost
-                if extracted.advance_paid is not None: pending_job["advance_paid"] = extracted.advance_paid
+                if extracted.total_cost > 0: pending_job["total_cost"] = extracted.total_cost
+                if extracted.advance_paid > 0: pending_job["advance_paid"] = extracted.advance_paid
             else:
                 pending_job = {
                     "customer_name": extracted.customer_name,
@@ -326,7 +325,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
             if not pending_job.get("customer_name"): missing.append("Customer Name")
             if not pending_job.get("phone"): missing.append("Phone Number")
             if not pending_job.get("product") and not pending_job.get("issue"): missing.append("Product/Issue")
-            if pending_job.get("total_cost") is None: missing.append("Total Cost")
+            if pending_job.get("total_cost", 0.0) <= 0: missing.append("Total Cost")
             
             if missing:
                 conversation_state["pending_job"] = pending_job
