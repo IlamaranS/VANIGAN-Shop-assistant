@@ -1,7 +1,32 @@
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://vanigan-shop-assistant-production.up.railway.app/api';
 
 // Auth Logic Implementation
 function setupAuthLogic() {
+    const sessionStr = localStorage.getItem('userSession');
+    if (sessionStr) {
+        try {
+            const data = JSON.parse(sessionStr);
+            sessionStorage.setItem('userId', data.user_id);
+            const profileShopName = document.querySelector('.profile-info .shop-name');
+            const profileRole = document.querySelector('.profile-info .shop-role');
+            const profileAvatar = document.querySelector('.profile-avatar');
+            if (profileShopName && data.shop_name) profileShopName.textContent = data.shop_name;
+            if (profileRole && data.business_type) profileRole.textContent = data.business_type;
+            if (profileAvatar && data.shop_name) profileAvatar.textContent = data.shop_name.charAt(0).toUpperCase();
+            
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('app-container').style.opacity = '1';
+                fetchJobs();
+                fetchAnalytics();
+            }, 50);
+        } catch (e) {
+            console.error(e);
+            localStorage.removeItem('userSession');
+        }
+    }
+
     const linkToSignup = document.getElementById('link-to-signup');
     const linkToLogin = document.getElementById('link-to-login');
     const btnLoginSubmit = document.getElementById('btn-login-submit');
@@ -49,29 +74,8 @@ function setupAuthLogic() {
         });
     }
 
-    const demoLoginHandler = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: "demo@vanigan.com", password: "demo_password" })
-            });
-            const data = await response.json();
-            if (data.success) {
-                sessionStorage.setItem('userId', data.user_id);
-                const profileShopName = document.querySelector('.profile-info .shop-name');
-                const profileRole = document.querySelector('.profile-info .shop-role');
-                const profileAvatar = document.querySelector('.profile-avatar');
-                if (profileShopName && data.shop_name) profileShopName.textContent = data.shop_name;
-                if (profileRole && data.business_type) profileRole.textContent = data.business_type;
-                if (profileAvatar && data.shop_name) profileAvatar.textContent = data.shop_name.charAt(0).toUpperCase();
-                transitionToDashboard();
-            } else {
-                alert("Demo login failed.");
-            }
-        } catch (err) {
-            alert("Error connecting to server for demo login.");
-        }
+    const demoLoginHandler = () => {
+        window.location.href = API_BASE_URL + '/auth/google';
     };
 
     if (btnSignupGoogle) {
@@ -100,6 +104,7 @@ function setupAuthLogic() {
                 });
                 const data = await response.json();
                 if (data.success) {
+                    localStorage.setItem('userSession', JSON.stringify(data));
                     sessionStorage.setItem('userId', data.user_id);
                     // Update badge if needed
                     const profileShopName = document.querySelector('.profile-info .shop-name');
@@ -153,6 +158,7 @@ function setupAuthLogic() {
                 });
                 const data = await response.json();
                 if (data.success) {
+                    localStorage.setItem('userSession', JSON.stringify(data));
                     sessionStorage.setItem('userId', data.user_id);
                     
                     // Dynamically update profile badge
@@ -282,19 +288,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const optProfileTheme = document.getElementById('opt-profile-theme');
+    const optProfileFont = document.getElementById('opt-profile-font');
+    const optProfileSignout = document.getElementById('opt-profile-signout');
+
     if (optProfileSettings) {
-        optProfileSettings.addEventListener('click', () => {
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            const contentViews = document.querySelectorAll('.content-view');
-            contentViews.forEach(v => {
-                v.style.display = 'none';
-                v.classList.remove('active');
-            });
-            const settingsView = document.getElementById('view-settings');
-            if (settingsView) {
-                settingsView.style.display = 'block';
-                settingsView.classList.add('active');
-            }
+        optProfileSettings.addEventListener('click', () => alert("Feature coming soon"));
+    }
+    if (optProfileTheme) {
+        optProfileTheme.addEventListener('click', () => alert("Feature coming soon"));
+    }
+    if (optProfileFont) {
+        optProfileFont.addEventListener('click', () => alert("Feature coming soon"));
+    }
+    if (optProfileSignout) {
+        optProfileSignout.addEventListener('click', () => {
+            localStorage.removeItem('userSession');
+            sessionStorage.removeItem('userId');
+            window.location.reload();
         });
     }
 
@@ -639,24 +650,48 @@ async function fetchJobs() {
                 
                 // Real-Time Live Aging Calculator
                 let badgeText = job.deadline || 'No Deadline';
+                let hasAlert = false;
                 if (job.deadline) {
-                    const targetDate = new Date(job.deadline);
-                    if (!isNaN(targetDate.getTime())) {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        targetDate.setHours(0, 0, 0, 0);
-                        const diffTime = targetDate - today;
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        
-                        if (diffDays === 0) {
-                            badgeText = "DUE: TODAY";
-                        } else if (diffDays === 1) {
-                            badgeText = "DUE: 1 DAY";
-                        } else if (diffDays > 1) {
-                            badgeText = `DUE: ${diffDays} DAYS`;
-                        } else if (diffDays < 0) {
-                            badgeText = `OVERDUE: ${Math.abs(diffDays)} DAYS`;
+                    let deadlineStr = job.deadline.toLowerCase();
+                    const weekMatch = deadlineStr.match(/(\d+)\s+week/);
+                    if (weekMatch) {
+                        const days = parseInt(weekMatch[1]) * 7;
+                        badgeText = `${days} days remaining`;
+                    } else {
+                        const targetDate = new Date(job.deadline);
+                        if (!isNaN(targetDate.getTime())) {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            targetDate.setHours(0, 0, 0, 0);
+                            const diffTime = targetDate - today;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays === 0) {
+                                badgeText = "DUE: TODAY";
+                                hasAlert = true;
+                            } else if (diffDays === 1) {
+                                badgeText = "DUE: 1 DAY";
+                                hasAlert = true;
+                            } else if (diffDays > 1) {
+                                badgeText = `DUE: ${diffDays} DAYS`;
+                                if (diffDays <= 2) hasAlert = true;
+                            } else if (diffDays < 0) {
+                                badgeText = `OVERDUE: ${Math.abs(diffDays)} DAYS`;
+                                hasAlert = true;
+                            }
                         }
+                    }
+                }
+
+                if (hasAlert) {
+                    let alertDiv = document.getElementById('deadline-alert-overlay');
+                    if (!alertDiv) {
+                        alertDiv = document.createElement('div');
+                        alertDiv.id = 'deadline-alert-overlay';
+                        alertDiv.style.cssText = "position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: #fee2e2; color: #991b1b; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #f87171;";
+                        alertDiv.innerText = "⚠️ Attention: You have approaching or overdue job deadlines!";
+                        document.body.appendChild(alertDiv);
+                        setTimeout(() => alertDiv.remove(), 5000);
                     }
                 }
 
@@ -743,37 +778,55 @@ function setupSearchFilter(inputId, tableBodyId) {
 }
 
 // Global Task Done Handler for WhatsApp Trigger
-window.markTaskDone = async function(jobId, checkbox, customerName, product, totalCost, advancePaid) {
+window.markTaskDone = function(jobId, checkbox, customerName, product, totalCost, advancePaid) {
     if (checkbox) checkbox.checked = false; // Prevent default checking until payment is confirmed
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: `TRIGGER_PAYMENT_FLOW:${jobId}` })
-        });
+    const paymentModal = document.getElementById('payment-modal');
+    const paymentInput = document.getElementById('payment-amount');
+    const btnSubmit = document.getElementById('btn-submit-payment');
+    const closeBtn = document.getElementById('close-payment-modal');
+    
+    if (paymentModal && paymentInput && btnSubmit) {
+        paymentInput.value = '';
+        paymentModal.style.display = 'flex';
         
-        const data = await response.json();
-        if (data && data.reply) {
-            const formattedReply = data.reply.replace(/\n/g, '<br>');
-            appendMessage(formattedReply, 'assistant');
-        }
+        const closeModal = () => {
+            paymentModal.style.display = 'none';
+        };
         
-        const templateEl = document.getElementById('template-pickup');
-        const chatInputBox = document.getElementById('chat-input');
-        if (templateEl && chatInputBox) {
-            let templateText = templateEl.value;
-            const balance = totalCost - advancePaid;
-            templateText = templateText.replace(/{customer}/g, customerName)
-                                       .replace(/{job_id}/g, jobId)
-                                       .replace(/{product}/g, product)
-                                       .replace(/{total}/g, Math.max(0, balance));
+        if (closeBtn) closeBtn.onclick = closeModal;
+        
+        btnSubmit.onclick = async () => {
+            const amountStr = paymentInput.value;
+            const amount = parseFloat(amountStr) || 0;
+            const balance = (totalCost || 0) - (advancePaid || 0);
             
-            chatInputBox.value = templateText;
-            chatInputBox.focus();
-        }
-    } catch (e) {
-        console.error('API Error:', e);
+            try {
+                // Determine if this pays it off completely
+                const isComplete = amount >= balance;
+                
+                const payload = {
+                    advance_paid: (advancePaid || 0) + amount,
+                    status: isComplete ? 'Completed' : 'Pending'
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    fetchJobs(); // This will auto-move it to Unpaid if partial, or drop it from pending if Completed.
+                } else {
+                    alert('Failed to update job payment status.');
+                }
+            } catch (e) {
+                console.error('API Error:', e);
+                alert('Error communicating with server.');
+            }
+        };
     }
 }
 
@@ -900,8 +953,12 @@ function setupCalendar() {
         let jobsList = [];
         try {
             const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`);
-            jobsList = await response.json();
-        } catch (e) { console.error(e); }
+            const data = await response.json();
+            jobsList = Array.isArray(data) ? data : [];
+        } catch (e) { 
+            console.error("Failed to fetch jobs for calendar:", e);
+            jobsList = [];
+        }
         
         // Adjust JS getDay() (0=Sun, 1=Mon) to standard (1=Mon, 7=Sun)
         let startOffset = firstDay === 0 ? 6 : firstDay - 1;
