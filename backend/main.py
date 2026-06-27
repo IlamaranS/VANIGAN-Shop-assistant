@@ -571,66 +571,80 @@ def get_analytics(user_id: Optional[int] = None, db: Session = Depends(database.
             
     return turnover
 
-@app.get("/api/auth/google")
-def google_login():
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+@app.get("/api/auth/github")
+def github_login():
+    client_id = os.getenv("GITHUB_CLIENT_ID")
+    redirect_uri = os.getenv("GITHUB_REDIRECT_URI")
     
     if not client_id or not redirect_uri:
-        return {"error": "Google OAuth is not configured on the server."}
+        return {"error": "GitHub OAuth is not configured on the server."}
         
     auth_url = (
-        "https://accounts.google.com/o/oauth2/v2/auth"
+        "https://github.com/login/oauth/authorize"
         f"?client_id={client_id}"
         f"&redirect_uri={urllib.parse.quote(redirect_uri)}"
-        "&response_type=code"
-        "&scope=openid%20email%20profile"
-        "&access_type=offline"
+        "&scope=user:email"
     )
     return RedirectResponse(url=auth_url)
 
 @app.get("/api/auth/callback")
-def google_callback(code: str, db: Session = Depends(database.get_db)):
-    client_id = os.getenv("GOOGLE_CLIENT_ID")
-    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+def github_callback(code: str, db: Session = Depends(database.get_db)):
+    client_id = os.getenv("GITHUB_CLIENT_ID")
+    client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+    redirect_uri = os.getenv("GITHUB_REDIRECT_URI")
     
     if not client_id or not client_secret or not redirect_uri:
-        return {"error": "Google OAuth is not configured on the server."}
+        return {"error": "GitHub OAuth is not configured on the server."}
         
-    token_url = "https://oauth2.googleapis.com/token"
+    token_url = "https://github.com/login/oauth/access_token"
     token_data = {
-        "code": code,
         "client_id": client_id,
         "client_secret": client_secret,
-        "redirect_uri": redirect_uri,
-        "grant_type": "authorization_code"
+        "code": code,
+        "redirect_uri": redirect_uri
     }
     
     try:
         req = urllib.request.Request(token_url, data=urllib.parse.urlencode(token_data).encode('utf-8'))
+        req.add_header("Accept", "application/json")
         with urllib.request.urlopen(req) as response:
             token_res = json.loads(response.read())
             
         access_token = token_res.get("access_token")
+        if not access_token:
+            return {"error": "Failed to get access token from GitHub"}
         
-        userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+        userinfo_url = "https://api.github.com/user"
         req = urllib.request.Request(userinfo_url)
         req.add_header("Authorization", f"Bearer {access_token}")
         with urllib.request.urlopen(req) as response:
             user_info = json.loads(response.read())
             
         email = user_info.get("email")
+        
         if not email:
-            return {"error": "Failed to get email from Google"}
+            emails_url = "https://api.github.com/user/emails"
+            req2 = urllib.request.Request(emails_url)
+            req2.add_header("Authorization", f"Bearer {access_token}")
+            with urllib.request.urlopen(req2) as resp2:
+                emails_info = json.loads(resp2.read())
+                for e in emails_info:
+                    if e.get("primary"):
+                        email = e.get("email")
+                        break
+                        
+        if not email:
+            return {"error": "Failed to get email from GitHub"}
             
         # Check if user exists
         user = db.query(models.User).filter(models.User.email == email).first()
         if not user:
-            name = user_info.get("name", "Shop User")
+            name = user_info.get("name")
+            if not name:
+                name = user_info.get("login", "Shop User")
             user = models.User(
                 email=email,
-                password="google_oauth_no_password",
+                password="github_oauth_no_password",
                 shop_name=f"{name}'s Shop",
                 business_type="General Repair"
             )
@@ -651,4 +665,4 @@ def google_callback(code: str, db: Session = Depends(database.get_db)):
         
     except Exception as e:
         print(f"OAuth Error: {e}")
-        return {"error": "Failed to authenticate with Google"}
+        return {"error": "Failed to authenticate with GitHub"}
