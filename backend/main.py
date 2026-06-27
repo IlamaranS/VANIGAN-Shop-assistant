@@ -13,8 +13,9 @@ from pydantic import BaseModel
 
 from typing import Optional
 from sqlalchemy import text
-import models, database
-from ai_service import process_chat_message
+import backend.models as models
+import backend.database as database
+from backend.ai_service import process_chat_message
 
 # Explicitly force table generation on startup for Neon PostgreSQL / active database
 try:
@@ -677,4 +678,4 @@ if __name__ == "__main__":
     import uvicorn
     import os
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=True)
