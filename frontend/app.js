@@ -45,9 +45,9 @@ function setupAuthLogic() {
     const linkToSignup = document.getElementById('link-to-signup');
     const linkToLogin = document.getElementById('link-to-login');
     const btnLoginSubmit = document.getElementById('btn-login-submit');
-    const btnLoginGoogle = document.getElementById('btn-login-google');
+    const btnLoginGithub = document.getElementById('btn-login-github');
     const btnSignupStep1 = document.getElementById('btn-signup-step1');
-    const btnSignupGoogle = document.getElementById('btn-signup-google');
+    const btnSignupGithub = document.getElementById('btn-signup-github');
     const btnSignupComplete = document.getElementById('btn-signup-complete');
 
     const viewLogin = document.getElementById('auth-login-view');
@@ -90,11 +90,11 @@ function setupAuthLogic() {
     }
 
     const demoLoginHandler = () => {
-        window.location.href = API_BASE_URL + '/auth/google';
+        window.location.href = API_BASE_URL + '/auth/github';
     };
 
-    if (btnSignupGoogle) {
-        btnSignupGoogle.addEventListener('click', demoLoginHandler);
+    if (btnSignupGithub) {
+        btnSignupGithub.addEventListener('click', demoLoginHandler);
     }
 
     if (btnLoginSubmit) {
@@ -144,8 +144,8 @@ function setupAuthLogic() {
         });
     }
 
-    if (btnLoginGoogle) {
-        btnLoginGoogle.addEventListener('click', demoLoginHandler);
+    if (btnLoginGithub) {
+        btnLoginGithub.addEventListener('click', demoLoginHandler);
     }
 
     if (btnSignupComplete) {
