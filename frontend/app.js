@@ -2,6 +2,21 @@ const API_BASE_URL = 'https://vanigan-shop-assistant-production.up.railway.app/a
 
 // Auth Logic Implementation
 function setupAuthLogic() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authPayload = urlParams.get('auth_payload');
+    if (authPayload) {
+        try {
+            const decodedStr = atob(authPayload);
+            const data = JSON.parse(decodedStr);
+            if (data.success) {
+                localStorage.setItem('userSession', JSON.stringify(data));
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        } catch (e) {
+            console.error("Failed to parse auth_payload", e);
+        }
+    }
+
     const sessionStr = localStorage.getItem('userSession');
     if (sessionStr) {
         try {
