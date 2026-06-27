@@ -666,12 +666,16 @@ async function fetchJobs() {
                 // Real-Time Live Aging Calculator
                 let badgeText = job.deadline || 'No Deadline';
                 let hasAlert = false;
-                if (job.deadline) {
+                
+                if (!job.deadline) {
+                    hasAlert = true;
+                } else {
                     let deadlineStr = job.deadline.toLowerCase();
                     const weekMatch = deadlineStr.match(/(\d+)\s+week/);
                     if (weekMatch) {
                         const days = parseInt(weekMatch[1]) * 7;
                         badgeText = `${days} days remaining`;
+                        if (days <= 2) hasAlert = true;
                     } else {
                         const targetDate = new Date(job.deadline);
                         if (!isNaN(targetDate.getTime())) {
@@ -822,7 +826,7 @@ window.markTaskDone = function(jobId, checkbox, customerName, product, totalCost
                 
                 const payload = {
                     advance_paid: (advancePaid || 0) + amount,
-                    status: isComplete ? 'Completed' : 'Pending'
+                    status: isComplete ? 'Completed' : 'Yet To Pay'
                 };
                 
                 const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
@@ -834,6 +838,7 @@ window.markTaskDone = function(jobId, checkbox, customerName, product, totalCost
                 if (response.ok) {
                     closeModal();
                     fetchJobs(); // This will auto-move it to Unpaid if partial, or drop it from pending if Completed.
+                    fetchAnalytics(); // Update analytics figures dynamically
                 } else {
                     alert('Failed to update job payment status.');
                 }
@@ -1009,10 +1014,16 @@ function setupCalendar() {
             let pendingJobsList = [];
             
             jobsList.forEach(job => {
-                let computedDeadline = job.raw_deadline;
+                let computedDeadline = job.raw_deadline || job.deadline; // Fallback to normal deadline
                 if (computedDeadline && !computedDeadline.includes('-')) {
+                    const weekMatch = computedDeadline.match(/(\d+)\s+week/i);
                     const match = computedDeadline.match(/(\d+)\s+DAYS/i);
-                    if (match) {
+                    if (weekMatch) {
+                        const days = parseInt(weekMatch[1]) * 7;
+                        const dObj = new Date(2026, 5, 25);
+                        dObj.setDate(dObj.getDate() + days);
+                        computedDeadline = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`;
+                    } else if (match) {
                         const days = parseInt(match[1]);
                         const dObj = new Date(2026, 5, 25);
                         dObj.setDate(dObj.getDate() + days);
@@ -1037,13 +1048,28 @@ function setupCalendar() {
             if (totalTurnover > 0 || pendingJobsList.length > 0) {
                 cell.style.position = 'relative';
                 
+                let tooltipHTML = `<div class="cal-tooltip" style="display:none; position:absolute; bottom: 100%; left:50%; transform:translateX(-50%); background:#2c3e50; color:#fff; padding:10px; border-radius:6px; font-size:12px; white-space:pre-wrap; z-index:100; min-width:140px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">`;
+                
                 if (totalTurnover > 0) {
-                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-green" title="Turnover: ₹${totalTurnover}"></span>`);
+                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-green"></span>`);
+                    tooltipHTML += `<strong>Turnover:</strong> ₹${totalTurnover}\n`;
                 }
                 if (pendingJobsList.length > 0) {
-                    const tooltipText = `Pending:\n${pendingJobsList.join('\n')}`;
-                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-red" title="${tooltipText}"></span>`);
+                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-red"></span>`);
+                    tooltipHTML += `<strong>Pending Jobs:</strong>\n${pendingJobsList.join('\n')}`;
                 }
+                
+                tooltipHTML += `</div>`;
+                cell.insertAdjacentHTML('beforeend', tooltipHTML);
+                
+                cell.addEventListener('mouseenter', () => {
+                    const tip = cell.querySelector('.cal-tooltip');
+                    if (tip) tip.style.display = 'block';
+                });
+                cell.addEventListener('mouseleave', () => {
+                    const tip = cell.querySelector('.cal-tooltip');
+                    if (tip) tip.style.display = 'none';
+                });
             }
             
             grid.appendChild(cell);
