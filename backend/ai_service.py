@@ -45,6 +45,7 @@ def process_chat_message(message: str, recent_jobs_context: str = "") -> JobExtr
         "Extract details from the user's message to manage repair jobs. "
         "If the user is just saying hello, asking a general question, or chatting casually, use 'casual_chat' and provide a warm 'casual_response'. "
         "Use 'create_job' if the user explicitly wants to log a new order, report a repair, or provide details for one (e.g. they say 'new customer', 'add', 'create', 'setup'). "
+        "CRITICAL CONVERSATIONAL ROUTING RULE: If the user message contains information about a customer name, device, phone number, product, or issue, you MUST immediately call the JobExtraction tool to parse the fields. Do not engage in casual conversation or ask the user to re-enter details if at least one core extraction field is present. Prioritize extraction over textual conversational responses. "
         "Use 'update_job' if the user wants to update details (like total cost, deadline, phone) of an EXISTING customer or job. "
         "Intents: 'create_job' for new repairs, 'update_job' for modifying existing repairs, 'search' for looking up jobs, 'casual_chat' for general talk, 'process_payment' for payments, 'cancel' to stop or abort. "
         "MANDATORY VERIFICATION: Before allowing a new ticket to save, you must explicitly demand and collect four mandatory pieces of data: [Customer Name, Phone Number, Product/Issue, and Total Cost]. "
