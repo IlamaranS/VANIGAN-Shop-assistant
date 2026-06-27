@@ -16,6 +16,9 @@ from sqlalchemy import text
 from backend import models, database
 from backend.ai_service import process_chat_message
 
+# Explicitly force table generation on startup for Neon PostgreSQL / active database
+models.Base.metadata.create_all(bind=database.engine)
+
 # Ensure user_id column exists
 try:
     with database.engine.connect() as conn:
