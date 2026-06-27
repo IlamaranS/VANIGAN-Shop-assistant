@@ -17,7 +17,10 @@ from backend import models, database
 from backend.ai_service import process_chat_message
 
 # Explicitly force table generation on startup for Neon PostgreSQL / active database
-models.Base.metadata.create_all(bind=database.engine)
+try:
+    models.Base.metadata.create_all(bind=database.engine)
+except Exception as e:
+    print(f"Warning: Database initialization encountered an error: {e}")
 
 # Ensure user_id column exists
 try:
