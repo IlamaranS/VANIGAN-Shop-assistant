@@ -13,8 +13,8 @@ from pydantic import BaseModel
 
 from typing import Optional
 from sqlalchemy import text
-from backend import models, database
-from backend.ai_service import process_chat_message
+import models, database
+from ai_service import process_chat_message
 
 # Explicitly force table generation on startup for Neon PostgreSQL / active database
 try:
