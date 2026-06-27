@@ -1,7 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
+import os
+import json
+import base64
+import urllib.request
+import urllib.parse
 from sqlalchemy.orm import Session
 from datetime import datetime
 from pydantic import BaseModel
@@ -565,3 +570,85 @@ def get_analytics(user_id: Optional[int] = None, db: Session = Depends(database.
             turnover["yearly"] += amt
             
     return turnover
+
+@app.get("/api/auth/google")
+def google_login():
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+    
+    if not client_id or not redirect_uri:
+        return {"error": "Google OAuth is not configured on the server."}
+        
+    auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth"
+        f"?client_id={client_id}"
+        f"&redirect_uri={urllib.parse.quote(redirect_uri)}"
+        "&response_type=code"
+        "&scope=openid%20email%20profile"
+        "&access_type=offline"
+    )
+    return RedirectResponse(url=auth_url)
+
+@app.get("/api/auth/callback")
+def google_callback(code: str, db: Session = Depends(database.get_db)):
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+    
+    if not client_id or not client_secret or not redirect_uri:
+        return {"error": "Google OAuth is not configured on the server."}
+        
+    token_url = "https://oauth2.googleapis.com/token"
+    token_data = {
+        "code": code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
+        "grant_type": "authorization_code"
+    }
+    
+    try:
+        req = urllib.request.Request(token_url, data=urllib.parse.urlencode(token_data).encode('utf-8'))
+        with urllib.request.urlopen(req) as response:
+            token_res = json.loads(response.read())
+            
+        access_token = token_res.get("access_token")
+        
+        userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+        req = urllib.request.Request(userinfo_url)
+        req.add_header("Authorization", f"Bearer {access_token}")
+        with urllib.request.urlopen(req) as response:
+            user_info = json.loads(response.read())
+            
+        email = user_info.get("email")
+        if not email:
+            return {"error": "Failed to get email from Google"}
+            
+        # Check if user exists
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if not user:
+            name = user_info.get("name", "Shop User")
+            user = models.User(
+                email=email,
+                password="google_oauth_no_password",
+                shop_name=f"{name}'s Shop",
+                business_type="General Repair"
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            
+        payload = {
+            "success": True,
+            "user_id": user.id,
+            "shop_name": user.shop_name,
+            "business_type": user.business_type
+        }
+        
+        encoded_payload = base64.b64encode(json.dumps(payload).encode("utf-8")).decode("utf-8")
+        # Redirect to frontend
+        return RedirectResponse(url=f"https://vanigan1.netlify.app/?auth_payload={encoded_payload}")
+        
+    except Exception as e:
+        print(f"OAuth Error: {e}")
+        return {"error": "Failed to authenticate with Google"}
