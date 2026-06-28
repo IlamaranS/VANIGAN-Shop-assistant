@@ -357,6 +357,19 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
             
             status_val = "Pending Quote" if (total_c == 0 and adv_p == 0) else "Pending"
             
+            # Ensure user exists before inserting foreign key jobs
+            existing_user = db.query(models.User).filter(models.User.id == request.user_id).first()
+            if not existing_user:
+                new_user = models.User(
+                    id=request.user_id, 
+                    email=f"user{request.user_id}@example.com", 
+                    password="auto_generated", 
+                    shop_name="Maran Electronics", 
+                    business_type="General Repair"
+                )
+                db.add(new_user)
+                db.commit()
+            
             new_job = models.Job(
                 user_id=request.user_id,
                 job_id=job_id,
