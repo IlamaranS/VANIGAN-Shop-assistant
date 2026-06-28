@@ -298,7 +298,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
                 day_match = re.search(r'(?:in )?(\d+) days?', dl_str)
                 
                 if week_match:
-                    days = int(week_match.group(1)) * 14
+                    days = int(week_match.group(1)) * 7
                 elif day_match:
                     days = int(day_match.group(1))
                 elif "tomorrow" in dl_str:
@@ -307,8 +307,7 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
                     days = 0
                 
                 if days is not None:
-                    # Explicit base date per user requirement: June 25, 2026
-                    base_date = datetime(2026, 6, 25)
+                    base_date = datetime.now()
                     target_date = base_date + timedelta(days=days)
                     parsed_deadline = target_date.strftime("%Y-%m-%d")
 
