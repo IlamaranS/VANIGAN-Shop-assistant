@@ -1013,6 +1013,9 @@ function setupCalendar() {
             let totalTurnover = 0;
             let pendingJobsList = [];
             
+            let dayHasJobs = false;
+            let hasPendingOrUnpaid = false;
+            
             jobsList.forEach(job => {
                 let computedDeadline = job.raw_deadline || job.deadline; // Fallback to normal deadline
                 if (computedDeadline && !computedDeadline.includes('-')) {
@@ -1036,27 +1039,36 @@ function setupCalendar() {
                 }
                 
                 if (computedDeadline === cellDateStr) {
+                    dayHasJobs = true;
+                    const isUnpaid = (job.total_cost || 0) - (job.advance_paid || 0) > 0;
+                    
                     if (job.status === 'Completed') {
                         totalTurnover += (job.total_cost || 0);
                     }
-                    if (job.status === 'Pending' || job.status === 'Pending Quote') {
+                    
+                    if (job.status === 'Pending' || job.status === 'Pending Quote' || job.status === 'Yet To Pay' || isUnpaid) {
+                        hasPendingOrUnpaid = true;
                         pendingJobsList.push(`${job.customer_name || 'Customer'} - ${job.product || 'Device'}`);
                     }
                 }
             });
             
-            if (totalTurnover > 0 || pendingJobsList.length > 0) {
+            if (dayHasJobs) {
                 cell.style.position = 'relative';
                 
                 let tooltipHTML = `<div class="cal-tooltip" style="display:none; position:absolute; bottom: 100%; left:50%; transform:translateX(-50%); background:#2c3e50; color:#fff; padding:10px; border-radius:6px; font-size:12px; white-space:pre-wrap; z-index:100; min-width:140px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">`;
                 
-                if (totalTurnover > 0) {
+                if (hasPendingOrUnpaid) {
+                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-red"></span>`);
+                } else {
                     cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-green"></span>`);
+                }
+                
+                if (totalTurnover > 0) {
                     tooltipHTML += `<strong>Turnover:</strong> ₹${totalTurnover}\n`;
                 }
                 if (pendingJobsList.length > 0) {
-                    cell.insertAdjacentHTML('beforeend', `<span class="cal-dot dot-red"></span>`);
-                    tooltipHTML += `<strong>Pending Jobs:</strong>\n${pendingJobsList.join('\n')}`;
+                    tooltipHTML += `<strong>Pending/Unpaid Jobs:</strong>\n${pendingJobsList.join('\n')}`;
                 }
                 
                 tooltipHTML += `</div>`;
