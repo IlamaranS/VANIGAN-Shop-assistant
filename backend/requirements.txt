@@ -1,6 +1,6 @@
 fastapi
 uvicorn
 sqlalchemy
-psycopg2-binary>=2.9.0
-google-generativeai
+psycopg2-binary==2.9.9
+google-genai
 python-dotenv
