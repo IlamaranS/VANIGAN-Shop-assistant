@@ -1027,18 +1027,21 @@ function setupCalendar() {
                     const match = computedDeadline.match(/(\d+)\s+DAYS/i);
                     if (weekMatch) {
                         const days = parseInt(weekMatch[1]) * 7;
-                        const dObj = new Date(2026, 5, 25);
+                        const dObj = new Date();
                         dObj.setDate(dObj.getDate() + days);
                         computedDeadline = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`;
                     } else if (match) {
                         const days = parseInt(match[1]);
-                        const dObj = new Date(2026, 5, 25);
+                        const dObj = new Date();
                         dObj.setDate(dObj.getDate() + days);
                         computedDeadline = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`;
                     } else if (computedDeadline.match(/TODAY/i)) {
-                        computedDeadline = "2026-06-25";
+                        const dObj = new Date();
+                        computedDeadline = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`;
                     } else if (computedDeadline.match(/TOMORROW/i)) {
-                        computedDeadline = "2026-06-26";
+                        const dObj = new Date();
+                        dObj.setDate(dObj.getDate() + 1);
+                        computedDeadline = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`;
                     }
                 }
                 
