@@ -1018,6 +1018,10 @@ function setupCalendar() {
             
             jobsList.forEach(job => {
                 let computedDeadline = job.raw_deadline || job.deadline; // Fallback to normal deadline
+                
+                // Force extraction of the pure YYYY-MM-DD string segment
+                computedDeadline = typeof computedDeadline === 'string' ? computedDeadline.split('T')[0] : '';
+                
                 if (computedDeadline && !computedDeadline.includes('-')) {
                     const weekMatch = computedDeadline.match(/(\d+)\s+week/i);
                     const match = computedDeadline.match(/(\d+)\s+DAYS/i);
