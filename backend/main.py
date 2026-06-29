@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
@@ -119,8 +119,15 @@ def login(request: LoginRequest, db: Session = Depends(database.get_db)):
     return {"success": False, "error": "Invalid email or password"}
 
 @app.post("/api/chat", response_model=ChatResponse)
-def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
+def chat_endpoint(request: ChatRequest, req: Request, db: Session = Depends(database.get_db)):
     global conversation_state
+    
+    user_id_str = req.headers.get("X-User-Id")
+    if user_id_str:
+        request.user_id = int(user_id_str)
+        
+    if not request.user_id:
+        return ChatResponse(reply="Error: Missing authentication user ID. Please log in again.")
     
     try:
         # Explicit Command Interception
@@ -466,17 +473,14 @@ def chat_endpoint(request: ChatRequest, db: Session = Depends(database.get_db)):
         return ChatResponse(reply=f"Internal Server Error: {error_str}")
 
 @app.get("/api/jobs")
-def get_jobs(user_id: Optional[int] = None, db: Session = Depends(database.get_db)):
+def get_jobs(req: Request, db: Session = Depends(database.get_db)):
+    user_id_str = req.headers.get("X-User-Id")
+    if not user_id_str:
+        return []
+    auth_user_id = int(user_id_str)
+
     try:
-        query = db.query(models.Job)
-        if user_id is not None:
-            if user_id == 1:
-                query = query.filter((models.Job.user_id == user_id) | (models.Job.user_id == None))
-            else:
-                query = query.filter(models.Job.user_id == user_id)
-        else:
-            query = query.filter(models.Job.user_id == None)
-        jobs = query.all()
+        jobs = db.query(models.Job).filter(models.Job.user_id == auth_user_id).all()
         
         # Dynamic Countdown Calculation Engine
         from datetime import datetime
@@ -523,8 +527,13 @@ def get_jobs(user_id: Optional[int] = None, db: Session = Depends(database.get_d
         return []
 
 @app.put("/api/jobs/{job_id}")
-def update_job_status(job_id: str, payload: dict, db: Session = Depends(database.get_db)):
-    job = db.query(models.Job).filter(models.Job.job_id == job_id).first()
+def update_job_status(job_id: str, payload: dict, req: Request, db: Session = Depends(database.get_db)):
+    user_id_str = req.headers.get("X-User-Id")
+    if not user_id_str:
+        return {"success": False, "error": "Unauthorized"}
+    auth_user_id = int(user_id_str)
+    
+    job = db.query(models.Job).filter(models.Job.job_id == job_id, models.Job.user_id == auth_user_id).first()
     if job:
         if "status" in payload:
             job.status = payload["status"]
@@ -548,17 +557,14 @@ def update_job_status(job_id: str, payload: dict, db: Session = Depends(database
     return {"success": False}
 
 @app.get("/api/analytics")
-def get_analytics(user_id: Optional[int] = None, db: Session = Depends(database.get_db)):
+def get_analytics(req: Request, db: Session = Depends(database.get_db)):
+    user_id_str = req.headers.get("X-User-Id")
+    if not user_id_str:
+        return {"today": 0, "weekly": 0, "monthly": 0, "yearly": 0}
+    auth_user_id = int(user_id_str)
+
     try:
-        query = db.query(models.Job)
-        if user_id is not None:
-            if user_id == 1:
-                query = query.filter((models.Job.user_id == user_id) | (models.Job.user_id == None))
-            else:
-                query = query.filter(models.Job.user_id == user_id)
-        else:
-            query = query.filter(models.Job.user_id == None)
-        jobs = query.all()
+        jobs = db.query(models.Job).filter(models.Job.user_id == auth_user_id).all()
     except Exception:
         models.Base.metadata.drop_all(bind=database.engine)
         models.Base.metadata.create_all(bind=database.engine)
