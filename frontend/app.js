@@ -532,7 +532,10 @@ async function sendMessage() {
         const userId = sessionStorage.getItem('userId') || '';
         const response = await fetch(`${API_BASE_URL}/chat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-Id': userId
+            },
             body: JSON.stringify({ message: text, user_id: parseInt(userId) || null })
         });
         
@@ -597,7 +600,11 @@ async function sendMessage() {
 async function fetchJobs() {
     try {
         const userId = sessionStorage.getItem('userId') || '';
-        const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`);
+        const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`, {
+            headers: {
+                'X-User-Id': userId
+            }
+        });
         const jobs = await response.json();
         
         const pendingList = document.getElementById('pending-list');
@@ -761,7 +768,11 @@ async function fetchJobs() {
 async function fetchAnalytics() {
     try {
         const userId = sessionStorage.getItem('userId') || '';
-        const response = await fetch(`${API_BASE_URL}/analytics?user_id=${userId}`);
+        const response = await fetch(`${API_BASE_URL}/analytics?user_id=${userId}`, {
+            headers: {
+                'X-User-Id': userId
+            }
+        });
         const data = await response.json();
         
         const elToday = document.getElementById('turnover-today');
@@ -829,9 +840,13 @@ window.markTaskDone = function(jobId, checkbox, customerName, product, totalCost
                     status: isComplete ? 'Completed' : 'Yet To Pay'
                 };
                 
+                const userId = sessionStorage.getItem('userId') || '';
                 const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-User-Id': userId
+                    },
                     body: JSON.stringify(payload)
                 });
                 
@@ -887,9 +902,13 @@ async function updateDatabaseRecord() {
     };
     
     try {
+        const userId = sessionStorage.getItem('userId') || '';
         const response = await fetch(`${API_BASE_URL}/jobs/${job_id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-Id': userId
+            },
             body: JSON.stringify(payload)
         });
         
@@ -972,7 +991,11 @@ function setupCalendar() {
         const userId = sessionStorage.getItem('userId') || '';
         let jobsList = [];
         try {
-            const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`);
+            const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`, {
+                headers: {
+                    'X-User-Id': userId
+                }
+            });
             const data = await response.json();
             jobsList = Array.isArray(data) ? data : [];
         } catch (e) { 
