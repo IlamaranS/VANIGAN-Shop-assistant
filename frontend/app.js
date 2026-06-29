@@ -385,6 +385,66 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearchFilter('search-db', 'database-body');
     setupSearchFilter('search-unpaid', 'unpaid-body');
 
+    // Excel Export Feature Implementation
+    const viewCustomersHeader = document.querySelector('#view-customers .view-header');
+    if (viewCustomersHeader) {
+        const exportBtn = document.createElement('button');
+        exportBtn.id = 'export-excel-btn';
+        exportBtn.className = 'btn btn-secondary';
+        exportBtn.innerHTML = '📥 Export Directory to Excel';
+        exportBtn.style.marginLeft = '10px';
+        
+        viewCustomersHeader.appendChild(exportBtn);
+
+        exportBtn.addEventListener('click', async () => {
+            try {
+                const userId = sessionStorage.getItem('userId') || '';
+                const response = await fetch(`${API_BASE_URL}/jobs?user_id=${userId}`, {
+                    headers: { 'X-User-Id': userId }
+                });
+                
+                if (!response.ok) throw new Error("Failed to fetch data for export");
+                const jobs = await response.json();
+                
+                if (!jobs || jobs.length === 0) {
+                    alert("No data available to export.");
+                    return;
+                }
+                
+                const headers = "Job ID,Customer Name,Phone,Product,Issue,Deadline,Total Cost,Status\n";
+                const rows = jobs.map(j => {
+                    const escapeCSV = (str) => {
+                        if (str == null) return '""';
+                        return `"${String(str).replace(/"/g, '""')}"`;
+                    };
+                    return [
+                        escapeCSV(j.job_id),
+                        escapeCSV(j.customer_name),
+                        escapeCSV(j.phone),
+                        escapeCSV(j.product),
+                        escapeCSV(j.issue),
+                        escapeCSV(j.deadline),
+                        escapeCSV(j.total_cost),
+                        escapeCSV(j.status)
+                    ];
+                });
+                
+                const csvContent = "data:text/csv;charset=utf-8," + headers + rows.map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `customer_directory_export_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (err) {
+                console.error("Export Error: ", err);
+                alert("Failed to export data.");
+            }
+        });
+    }
+
     if (btnAddInventory) {
         btnAddInventory.addEventListener('click', () => {
             const nameInput = document.getElementById('inv-item-name');
