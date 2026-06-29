@@ -473,14 +473,17 @@ def chat_endpoint(request: ChatRequest, req: Request, db: Session = Depends(data
         return ChatResponse(reply=f"Internal Server Error: {error_str}")
 
 @app.get("/api/jobs")
-def get_jobs(req: Request, db: Session = Depends(database.get_db)):
+def get_jobs(req: Request, user_id: int = None, db: Session = Depends(database.get_db)):
+    # Fallback to query parameter if header is missing (e.g. direct browser navigation)
     user_id_str = req.headers.get("X-User-Id")
-    if not user_id_str:
+    if user_id_str:
+        user_id = int(user_id_str)
+        
+    if not user_id:
         return []
-    auth_user_id = int(user_id_str)
 
     try:
-        jobs = db.query(models.Job).filter(models.Job.user_id == auth_user_id).all()
+        jobs = db.query(models.Job).filter(models.Job.user_id == user_id).all()
         
         # Dynamic Countdown Calculation Engine
         from datetime import datetime
