@@ -738,7 +738,7 @@ async function fetchJobs() {
                 dbBody.appendChild(tr);
             }
 
-            if (job.status === 'Pending') {
+            if (job.status !== 'Completed') {
                 pendingCount++;
                 
                 // Real-Time Live Aging Calculator
