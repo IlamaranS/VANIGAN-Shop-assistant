@@ -21,6 +21,7 @@ function setupAuthLogic() {
     if (sessionStr) {
         try {
             const data = JSON.parse(sessionStr);
+            if (!data || !data.user_id) throw new Error("Invalid or corrupted session data structure");
             sessionStorage.setItem('userId', data.user_id);
             const profileShopName = document.querySelector('.profile-info .shop-name');
             const profileRole = document.querySelector('.profile-info .shop-role');
@@ -172,6 +173,16 @@ function setupAuthLogic() {
                     body: JSON.stringify({ email, password, shop_name: shopName, business_type: businessType })
                 });
                 const data = await response.json();
+                
+                if (!response.ok && data.detail === "Email ID already exists") {
+                    switchAuthView(viewSignupStep2, viewSignupStep1);
+                    if (errorDiv) {
+                        errorDiv.textContent = data.detail;
+                        errorDiv.style.display = 'block';
+                    }
+                    return;
+                }
+
                 if (data.success) {
                     localStorage.setItem('userSession', JSON.stringify(data));
                     sessionStorage.setItem('userId', data.user_id);
