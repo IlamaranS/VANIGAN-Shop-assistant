@@ -103,7 +103,7 @@ def generate_job_id(db: Session):
 def signup(request: SignupRequest, db: Session = Depends(database.get_db)):
     existing = db.query(models.User).filter(models.User.email == request.email).first()
     if existing:
-        return {"success": False, "error": "Email already registered"}
+        raise HTTPException(status_code=400, detail="Email ID already exists")
     
     new_user = models.User(email=request.email, password=request.password, shop_name=request.shop_name, business_type=request.business_type)
     db.add(new_user)
